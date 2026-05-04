@@ -1,0 +1,36 @@
+---
+title: "Errors"
+description: "Error codes, meanings, recovery."
+---
+
+## Error envelope
+
+All non-2xx responses follow:
+
+```json
+{
+  "error": "machine_readable_code",
+  "message": "Optional human description",
+  "retry_after": 42
+}
+```
+
+`retry_after` only appears on `429`.
+
+## Codes
+
+| HTTP | `error` | When | What to do |
+| ---- | ------- | ---- | ---------- |
+| `400` | — | Required field missing | Fix request body |
+| `400` | `bad_request` | Malformed payload | Validate against schema |
+| `400` | `batch_too_large` | `ids.length > 10` | Split into multiple calls |
+| `401` | `unauthorized` | No header, malformed token, deleted key | Regenerate key in Settings |
+| `404` | `not_found` | Disk does not exist or is not owned by this key | Confirm `public_id` |
+| `405` | — | Wrong HTTP method | Use the documented verb |
+| `429` | `rate_limit_exceeded` | >100 req/min | Wait `retry_after` seconds, retry with jitter |
+| `500` | `internal_error` | Unhandled server error | Retry with exponential backoff; report if persistent |
+| `500` | `search_failed` | Embedding service or pgvector RPC failed | Retry; report if reproducible |
+
+## Idempotency
+
+All four endpoints are **safe to retry**. Reads are idempotent by definition; no endpoint mutates state.

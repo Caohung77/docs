@@ -1,0 +1,82 @@
+---
+title: "Get Disk"
+api: "GET /api/v1/disks/{id}"
+description: "Read a single Disk including all sections, key points, and related Disks."
+---
+
+Accepts either the UUID `id` or the short `public_id`.
+
+## Path parameters
+
+<ParamField path="id" type="string" required>
+Either the Disk UUID or its `public_id`.
+</ParamField>
+
+### Example
+
+```bash
+curl https://skilldiscs.com/api/v1/disks/abc123 \
+  -H "Authorization: Bearer sk_your_key_here"
+```
+
+## Response
+
+<ResponseField name="public_id" type="string" />
+<ResponseField name="title" type="string" />
+<ResponseField name="summary" type="string" />
+<ResponseField name="text" type="string">Full original text.</ResponseField>
+<ResponseField name="category" type="string" />
+<ResponseField name="source" type="string">`text` | `pdf` | `youtube` | `url`.</ResponseField>
+<ResponseField name="source_url" type="string">Origin URL, when applicable.</ResponseField>
+<ResponseField name="tags" type="string[]" />
+<ResponseField name="word_count" type="integer" />
+<ResponseField name="created_at" type="string" />
+<ResponseField name="sections" type="array">
+  <Expandable title="Section">
+    <ResponseField name="index" type="integer" />
+    <ResponseField name="text" type="string" />
+    <ResponseField name="word_count" type="integer" />
+    <ResponseField name="key_points" type="string[]">Up to 5 AI-extracted key points.</ResponseField>
+  </Expandable>
+</ResponseField>
+<ResponseField name="related_disks" type="array">
+  <Expandable title="Related disk">
+    <ResponseField name="public_id" type="string" />
+    <ResponseField name="title" type="string" />
+    <ResponseField name="similarity" type="number" />
+  </Expandable>
+</ResponseField>
+
+```json
+{
+  "public_id": "abc123",
+  "title": "Feynman on Quantum Mechanics",
+  "summary": "Introductory lecture distilled into 7 sections.",
+  "text": "...",
+  "category": "science",
+  "source": "youtube",
+  "source_url": "https://youtu.be/...",
+  "tags": ["physics", "quantum", "lectures"],
+  "word_count": 4231,
+  "created_at": "2026-04-12T08:14:09.000Z",
+  "sections": [
+    {
+      "index": 0,
+      "text": "...",
+      "word_count": 612,
+      "key_points": ["Probability amplitudes interfere..."]
+    }
+  ],
+  "related_disks": [
+    { "public_id": "def456", "title": "Schrödinger's Cat — Explained", "similarity": 0.74 }
+  ]
+}
+```
+
+## Errors
+
+| Status | Code | Meaning |
+| ------ | ---- | ------- |
+| `401`  | `unauthorized` | Bad / missing API key |
+| `404`  | `not_found` | No Disk with that id, or you don't own it |
+| `429`  | `rate_limit_exceeded` | >100 req/min |

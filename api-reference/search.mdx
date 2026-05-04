@@ -1,0 +1,63 @@
+---
+title: "Search Knowledge"
+api: "POST /api/v1/search"
+description: "Semantic search across every section of every Disk you own."
+---
+
+Returns the top-K matching sections ranked by vector similarity over Gemini embeddings.
+
+## Request
+
+<ParamField body="query" type="string" required>
+Natural language query. Trimmed to the first 1000 characters before embedding.
+</ParamField>
+
+<ParamField body="limit" type="integer" default="10">
+Maximum number of section hits returned. Capped at 25.
+</ParamField>
+
+### Example
+
+```bash
+curl -X POST https://skilldiscs.com/api/v1/search \
+  -H "Authorization: Bearer sk_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "how does diffusion work in transformers", "limit": 5}'
+```
+
+## Response
+
+<ResponseField name="results" type="array">
+Each hit references a single section inside one of your Disks.
+
+  <Expandable title="Section hit">
+    <ResponseField name="disk_public_id" type="string">Short URL-safe ID of the parent Disk.</ResponseField>
+    <ResponseField name="disk_title" type="string">Title of the parent Disk.</ResponseField>
+    <ResponseField name="section_index" type="integer">Zero-based section position within the Disk.</ResponseField>
+    <ResponseField name="snippet" type="string">Section text (or excerpt around the match).</ResponseField>
+    <ResponseField name="similarity" type="number">Cosine similarity score, `0.0`–`1.0`.</ResponseField>
+  </Expandable>
+</ResponseField>
+
+```json
+{
+  "results": [
+    {
+      "disk_public_id": "abc123",
+      "disk_title": "Attention Is All You Need — Annotated",
+      "section_index": 4,
+      "snippet": "Self-attention computes a weighted sum...",
+      "similarity": 0.91
+    }
+  ]
+}
+```
+
+## Errors
+
+| Status | Code | Meaning |
+| ------ | ---- | ------- |
+| `400`  | — | Missing `query` field |
+| `401`  | `unauthorized` | Bad / missing API key |
+| `429`  | `rate_limit_exceeded` | >100 req/min |
+| `500`  | `search_failed` / `internal_error` | Embedding or RPC failed |

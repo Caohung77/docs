@@ -1,55 +1,51 @@
-# Mintlify Starter Kit
+# SkillDiscs Public Docs (Mintlify)
 
-Use the starter kit to get your docs deployed and ready to customize.
+Public API documentation site for the SkillDiscs API. Powered by [Mintlify](https://mintlify.com).
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
-
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
-
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
-
-## AI-assisted writing
-
-Set up your AI coding tool to work with Mintlify:
+## Local preview
 
 ```bash
-npx skills add https://mintlify.com/docs
-```
-
-This command installs Mintlify's documentation skill for your configured AI tools like Claude Code, Cursor, Windsurf, and others. The skill includes component reference, writing standards, and workflow guidance.
-
-See the [AI tools guides](/ai-tools) for tool-specific setup.
-
-## Development
-
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
-
-```
-npm i -g mint
-```
-
-Run the following command at the root of your documentation, where your `docs.json` is located:
-
-```
+npm install -g mint
+cd docs-site
 mint dev
 ```
 
-View your local preview at `http://localhost:3000`.
+Opens at http://localhost:3000.
 
-## Publishing changes
+## Deploy
 
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
+1. Sign in to https://dashboard.mintlify.com with the project's GitHub account.
+2. Click **Add deployment** → connect this repo.
+3. Set the docs root to `docs-site/`.
+4. Add a custom domain (e.g. `docs.skilldiscs.com`) and the CNAME Mintlify provides at the DNS host.
+5. Push to `main` → docs auto-rebuild.
 
-## Need help?
+## Structure
 
-### Troubleshooting
+```
+docs-site/
+├── docs.json              # Mintlify config (theme, nav, navbar)
+├── index.mdx              # Landing
+├── quickstart.mdx
+├── authentication.mdx
+├── api-reference/
+│   ├── introduction.mdx
+│   ├── search.mdx         # POST /api/v1/search
+│   ├── list-disks.mdx     # GET  /api/v1/disks
+│   ├── get-disk.mdx       # GET  /api/v1/disks/{id}
+│   └── batch.mdx          # POST /api/v1/disks/batch
+├── guides/
+│   ├── llm-agents.mdx
+│   ├── rate-limits.mdx
+│   └── errors.mdx
+├── logo/
+│   ├── light.svg
+│   └── dark.svg
+└── favicon.svg
+```
 
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
+## Updating
 
-### Resources
-- [Mintlify documentation](https://mintlify.com/docs)
+Edit MDX files, push to `main`. Mintlify rebuilds in ~30s.
+
+When `api/v1/*` endpoints change in the main app, mirror the change in `api-reference/*.mdx`. Schema is hand-maintained (no OpenAPI source of truth yet — add `openapi.json` later if churn justifies it).

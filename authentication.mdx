@@ -1,0 +1,42 @@
+---
+title: "Authentication"
+description: "Bearer token authentication via API keys."
+---
+
+SkillDiscs uses **bearer-token authentication**. Every request must include your API key in the `Authorization` header.
+
+```http
+Authorization: Bearer sk_your_key_here
+```
+
+## Generating keys
+
+Keys live under [Settings → API Keys](https://skilldiscs.com/settings).
+
+- Click **Generate**, give the key a memorable name.
+- The full `sk_...` token is shown **once** at creation.
+- Only the **prefix** (`sk_a3f9...`) is stored after that — you cannot retrieve a lost key.
+
+## Scope
+
+A key grants read access to **all Disks owned by the user who created it**. Saved-from-others Disks are not exposed via the API; they remain accessible only through the web app at `/d/<slug>`.
+
+## Rotation
+
+To rotate:
+
+1. Generate a new key.
+2. Update your client / agent / `.env` with the new value.
+3. Delete the old key from Settings.
+
+There is no overlap window enforced — rotate as fast or slow as your deploys allow.
+
+## Errors
+
+| Status | `error` code | Cause |
+| ------ | ------------ | ----- |
+| `401`  | `unauthorized` | Missing header, malformed token, deleted key |
+| `429`  | `rate_limit_exceeded` | >100 req/min on the same key |
+| `500`  | `internal_error` | Server-side issue — retry with backoff |
+
+429 responses include `retry_after` (seconds) in the JSON body.

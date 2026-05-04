@@ -1,0 +1,47 @@
+---
+title: "Rate Limits"
+description: "How requests are throttled and how to back off."
+---
+
+## Limits
+
+| Limit | Value |
+| ----- | ----- |
+| Requests / minute / key | **100** |
+| Batch size | **10 ids** per `/disks/batch` call |
+| Search query length | First **1000 characters** are embedded |
+| Search result count | Up to **25** sections |
+| List page size | Up to **100** disks |
+
+## Detecting throttling
+
+A throttled request returns HTTP `429` with body:
+
+```json
+{
+  "error": "rate_limit_exceeded",
+  "retry_after": 42
+}
+```
+
+`retry_after` is in **seconds**. Wait that long, then retry.
+
+## Backoff strategy
+
+```javascript
+async function fetchWithBackoff(url, opts, attempt = 0) {
+  const r = await fetch(url, opts)
+  if (r.status !== 429) return r
+  const { retry_after = 60 } = await r.json().catch(() => ({}))
+  if (attempt >= 3) throw new Error('rate_limited')
+  const wait = (retry_after + Math.random() * 5) * 1000
+  await new Promise(res => setTimeout(res, wait))
+  return fetchWithBackoff(url, opts, attempt + 1)
+}
+```
+
+Add jitter to avoid thundering-herd retries from parallel agents sharing one key.
+
+## Need higher limits?
+
+Mention your use case at [skilldiscs.com/settings](https://skilldiscs.com/settings) — limits are per-account and adjustable on request for production agents.

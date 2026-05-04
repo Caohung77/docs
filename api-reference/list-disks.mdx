@@ -1,0 +1,81 @@
+---
+title: "List Disks"
+api: "GET /api/v1/disks"
+description: "List, search, and filter the Disks you own."
+---
+
+Returns a paginated list of your Disks, optionally narrowed by free-text search, category, or tag.
+
+## Query parameters
+
+<ParamField query="search" type="string">
+Natural language search. Combines semantic embedding match with title/summary `ILIKE` fallback.
+</ParamField>
+
+<ParamField query="category" type="string">
+Filter to one category id (e.g. `technology`, `philosophy`, `spirituality`). Ignored when `search` is set.
+</ParamField>
+
+<ParamField query="tag" type="string">
+Filter to Disks containing this exact tag name. Applied after the search/category step.
+</ParamField>
+
+<ParamField query="limit" type="integer" default="20">
+Page size. Capped at `100`.
+</ParamField>
+
+<ParamField query="offset" type="integer" default="0">
+Pagination offset. Ignored when `search` is set.
+</ParamField>
+
+### Examples
+
+```bash
+# Most recent
+curl https://skilldiscs.com/api/v1/disks \
+  -H "Authorization: Bearer sk_your_key_here"
+
+# Search
+curl "https://skilldiscs.com/api/v1/disks?search=machine+learning" \
+  -H "Authorization: Bearer sk_your_key_here"
+
+# Filter
+curl "https://skilldiscs.com/api/v1/disks?category=spirituality&tag=meditation" \
+  -H "Authorization: Bearer sk_your_key_here"
+```
+
+## Response
+
+<ResponseField name="disks" type="array">
+  <Expandable title="Disk summary">
+    <ResponseField name="public_id" type="string" />
+    <ResponseField name="title" type="string" />
+    <ResponseField name="summary" type="string" />
+    <ResponseField name="category" type="string" />
+    <ResponseField name="tags" type="string[]" />
+    <ResponseField name="word_count" type="integer" />
+    <ResponseField name="created_at" type="string">ISO 8601 timestamp.</ResponseField>
+    <ResponseField name="similarity" type="number">Only present on `search` responses.</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="total" type="integer">
+Total matching count (best-effort; equals `disks.length` for search responses).
+</ResponseField>
+
+```json
+{
+  "disks": [
+    {
+      "public_id": "abc123",
+      "title": "Feynman on Quantum Mechanics",
+      "summary": "Introductory lecture distilled into 7 sections.",
+      "category": "science",
+      "tags": ["physics", "quantum", "lectures"],
+      "word_count": 4231,
+      "created_at": "2026-04-12T08:14:09.000Z"
+    }
+  ],
+  "total": 124
+}
+```

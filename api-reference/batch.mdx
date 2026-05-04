@@ -1,0 +1,62 @@
+---
+title: "Batch Get Disks"
+api: "POST /api/v1/disks/batch"
+description: "Retrieve up to 10 Disks in a single round-trip."
+---
+
+Reduces the latency overhead of fanning out parallel requests to `/disks/{id}`.
+
+## Request
+
+<ParamField body="ids" type="string[]" required>
+Array of Disk UUIDs or `public_id`s. **Max 10 per call.**
+</ParamField>
+
+### Example
+
+```bash
+curl -X POST https://skilldiscs.com/api/v1/disks/batch \
+  -H "Authorization: Bearer sk_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"ids": ["abc123", "def456", "ghi789"]}'
+```
+
+## Response
+
+<ResponseField name="disks" type="array">
+Same shape as `/disks/{id}` minus `related_disks`, `source`, `source_url`.
+</ResponseField>
+
+<ResponseField name="not_found" type="string[]">
+IDs from the request that did not match any Disk you own.
+</ResponseField>
+
+```json
+{
+  "disks": [
+    {
+      "public_id": "abc123",
+      "title": "Feynman on Quantum Mechanics",
+      "summary": "...",
+      "text": "...",
+      "category": "science",
+      "word_count": 4231,
+      "tags": ["physics"],
+      "sections": [
+        { "index": 0, "text": "...", "word_count": 612, "key_points": ["..."] }
+      ],
+      "created_at": "2026-04-12T08:14:09.000Z"
+    }
+  ],
+  "not_found": ["ghi789"]
+}
+```
+
+## Errors
+
+| Status | Code | Meaning |
+| ------ | ---- | ------- |
+| `400`  | `bad_request` | `ids` missing or not an array |
+| `400`  | `batch_too_large` | More than 10 ids — split the request |
+| `401`  | `unauthorized` | Bad / missing API key |
+| `429`  | `rate_limit_exceeded` | >100 req/min |

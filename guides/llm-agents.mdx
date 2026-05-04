@@ -1,0 +1,69 @@
+---
+title: "LLM Agent Integration"
+description: "Wire SkillDiscs into Claude, GPT, or any tool-using agent."
+---
+
+SkillDiscs exposes four endpoints that map cleanly onto LLM tool definitions. This guide shows the minimal tool surface for retrieval-augmented agents.
+
+## Recommended tool surface
+
+Three tools cover ~95% of agent use cases:
+
+1. **`search_knowledge`** → `POST /api/v1/search`
+2. **`read_disk`** → `GET /api/v1/disks/{id}`
+3. **`list_disks`** → `GET /api/v1/disks?category=…&tag=…` (browsing)
+
+Skip `batch` unless you measure round-trip latency as a bottleneck.
+
+## Anthropic / Claude tool definition
+
+```json
+{
+  "name": "search_knowledge",
+  "description": "Search the user's personal knowledge base (their imported articles, videos, PDFs) by natural-language query. Returns the most relevant section excerpts.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string", "description": "Natural-language search query" },
+      "limit": { "type": "integer", "default": 5, "maximum": 25 }
+    },
+    "required": ["query"]
+  }
+}
+```
+
+In your tool handler, forward to:
+
+```javascript
+const r = await fetch('https://skilldiscs.com/api/v1/search', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${process.env.SKILLDISCS_API_KEY}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(input),
+})
+return await r.json()
+```
+
+## OpenAI / GPT function calling
+
+Same JSON Schema, register under `tools` with `type: "function"`. Forward to the same endpoint.
+
+## Prompt template
+
+```
+You have access to the user's personal knowledge base via three tools:
+- search_knowledge(query, limit) — semantic search across all Disks
+- read_disk(id) — full text + sections of one Disk
+- list_disks(category?, tag?) — browse the library
+
+Always cite the Disk title when referencing retrieved content.
+Prefer search_knowledge over read_disk unless the user names a specific Disk.
+```
+
+## Gotchas
+
+- **Never embed the API key in a client-side bundle.** Always proxy through your backend.
+- Search is **per-user**: one key sees only its owner's Disks.
+- Embeddings are computed at import time; newly imported Disks are searchable within seconds.

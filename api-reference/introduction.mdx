@@ -1,33 +1,44 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "Introduction"
+description: "REST endpoints for searching and retrieving your SkillDiscs library."
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Base URL
 
-## Welcome
+```
+https://skilldiscs.com/api/v1
+```
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+## Endpoints
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+| Method | Path | Purpose |
+| ------ | ---- | ------- |
+| `POST` | `/search` | Semantic search across all your Disks |
+| `GET`  | `/disks` | List & filter your Disks |
+| `GET`  | `/disks/{id}` | Read one Disk (UUID or public_id) |
+| `POST` | `/disks/batch` | Read up to 10 Disks in one call |
 
-## Authentication
+## Identifiers
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+Disks have **two** identifiers:
+
+- **`id`** — internal UUID (e.g. `f47ac10b-58cc-4372-a567-0e02b2c3d479`).
+- **`public_id`** — short URL-safe slug (e.g. `abc123`).
+
+Endpoints accepting `{id}` accept either form.
+
+## Response shape
+
+All responses are JSON. Errors follow this shape:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+{
+  "error": "rate_limit_exceeded",
+  "message": "Optional human description",
+  "retry_after": 42
+}
 ```
+
+## CORS
+
+CORS is enabled. Browser clients on any origin can call the API directly — but **never embed your API key in a client-side bundle**. Proxy through your own backend.
