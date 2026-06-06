@@ -45,11 +45,6 @@
           "anchor": "App",
           "href": "https://skilldiscs.com",
           "icon": "browser"
-        },
-        {
-          "anchor": "GitHub",
-          "href": "https://github.com/Caohung77/skilldisc",
-          "icon": "github"
         }
       ]
     }
